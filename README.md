@@ -1,2 +1,2 @@
 # pytone
-A python software to play audio tones
+A Python software to play audio tones.
