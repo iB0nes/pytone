@@ -1,5 +1,5 @@
 import numpy as np
-from abstract_modulator import AbstractModulator
+from modulators.abstract_modulator import AbstractModulator
 
 
 class DTMF(AbstractModulator):
@@ -55,13 +55,13 @@ class DTMF(AbstractModulator):
 
         # Tone generation
         for i in range(0, len(tone)):
-            t = i / float(self.samplingRate)
+            t = i / float(self.sampling_rate)
             tone[i] = int((MaxValue / 10.0) * (np.sin(2 * np.pi * frequency_1 * t) + np.sin(2 * np.pi * frequency_2 * t)))
             
         # Fading
         fade = 0.0
-        fade_limit = np.power(self.buffer_length / 6, 2.0) + (self.buffer_length / 6)
-        for i in range(0, self.buffer_length / 5):
+        fade_limit = np.power(self.buffer_length // 6, 2.0) + (self.buffer_length // 6)
+        for i in range(0, self.buffer_length // 5):
             if fade >= 1.0:
                 fade = 1.0
             else:
@@ -89,6 +89,6 @@ class DTMF(AbstractModulator):
                 return self.null_matrix
             else:          
                 return self.tone_matrix[self.tone_symbols[id_lc]]
-        except Exception as exc:
+        except KeyError:
             return None
 
