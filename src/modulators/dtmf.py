@@ -3,7 +3,7 @@ from modulators.abstract_modulator import AbstractModulator
 
 
 class DTMF(AbstractModulator):
-    frequencies_1 = (697, 770, 852, 941) 
+    frequencies_1 = (697,  770,  852,  941 ) 
     frequencies_2 = (1200, 1336, 1477, 1633)
     tone_symbols = { '1':'00',
                      '2':'01',
@@ -20,13 +20,16 @@ class DTMF(AbstractModulator):
                      '*':'30',
                      '0':'31',
                      '#':'32',
-                     'd':'33'
+                     'd':'33',
+                     'p':'--'
                     }
+    
                         
-    def __init__(self, sampling_rate, buffer_length) -> None:
+    def __init__(self, sampling_rate, tone_length) -> None:
         super().__init__()
         self.sampling_rate = sampling_rate
-        self.buffer_length = buffer_length
+        self.tone_length = tone_length
+        self.buffer_length = int(sampling_rate * tone_length)
         self.tone_matrix = {}
         self.null_matrix = []
         
@@ -35,8 +38,8 @@ class DTMF(AbstractModulator):
     # Private methods
     
     def _init_matrix(self):
-        self._compute_tone_matrix()
         self._compute_null_matrix()
+        self._compute_tone_matrix()
         
     
     def _compute_null_matrix(self):
@@ -44,6 +47,7 @@ class DTMF(AbstractModulator):
     
     
     def _compute_tone_matrix(self):
+        self.tone_matrix['--'] = self.null_matrix
         for id1 in range(0, 4):
             for id2 in range(0, 4):
                 self.tone_matrix[f"{id1}{id2}"] = self._generate_tone(self.frequencies_1[id1], self.frequencies_2[id2])
@@ -64,6 +68,7 @@ class DTMF(AbstractModulator):
         for i in range(0, self.buffer_length // 5):
             if fade >= 1.0:
                 fade = 1.0
+                break
             else:
                 fade = (np.power(float(i), 2.0) + i) / fade_limit
             tone[i] = tone[i] * fade
@@ -82,13 +87,10 @@ class DTMF(AbstractModulator):
         self._init_matrix()
     
     
-    def get_tone(self, id: str ) -> any:
+    def get_tone(self, tone_symbol: str ) -> any:
         try:
-            id_lc = id.lower()
-            if id_lc == 'p':
-                return self.null_matrix
-            else:          
-                return self.tone_matrix[self.tone_symbols[id_lc]]
+            id = tone_symbol.lower()  
+            return self.tone_matrix[self.tone_symbols[id]]
         except KeyError:
-            return None
+            return self.null_matrix
 
