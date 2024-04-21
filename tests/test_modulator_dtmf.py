@@ -25,13 +25,14 @@ class TestDtmf:
         return int(sampling_rate * tone_length)
     
     
-    def find_frequencies(self, tone, sampling_frequency, epsilon=1e+08):
+    def find_frequencies(self, tone, sampling_frequency):
         length = len(tone)
         # Find peak
         fft_result = np.fft.fft(tone)
         all_freq = np.fft.fftfreq(length, 1/sampling_frequency)
         freq = all_freq[:len(all_freq)//2]
         magnitude = np.abs(fft_result[:len(fft_result)//2])
+        epsilon = np.max(magnitude) * 0.9
 
         peaks = []
         for i in range(len(magnitude)):

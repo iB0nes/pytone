@@ -25,7 +25,7 @@ class DTMF(AbstractModulator):
                     }
     
                         
-    def __init__(self, sampling_rate, tone_length) -> None:
+    def __init__(self, sampling_rate: int, tone_length: float) -> None:
         super().__init__()
         self.sampling_rate = sampling_rate
         self.tone_length = tone_length
@@ -37,30 +37,30 @@ class DTMF(AbstractModulator):
         
     # Private methods
     
-    def _init_matrix(self):
+    def _init_matrix(self) -> None:
         self._compute_null_matrix()
         self._compute_tone_matrix()
         
     
-    def _compute_null_matrix(self):
-        self.null_matrix = [0] * self.buffer_length
+    def _compute_null_matrix(self) -> None:
+        self.null_matrix = np.zeros(self.buffer_length, dtype=np.uint16)
     
     
-    def _compute_tone_matrix(self):
+    def _compute_tone_matrix(self) -> None:
         self.tone_matrix['--'] = self.null_matrix
         for id1 in range(0, 4):
             for id2 in range(0, 4):
                 self.tone_matrix[f"{id1}{id2}"] = self._generate_tone(self.frequencies_1[id1], self.frequencies_2[id2])
     
     
-    def _generate_tone(self, frequency_1: int, frequency_2: int):
+    def _generate_tone(self, frequency_1: int, frequency_2: int) -> list[int]:
         tone = [0] * self.buffer_length
-        MaxValue = 65535
+        MaxValue = 32767
 
         # Tone generation
         for i in range(0, len(tone)):
             t = i / float(self.sampling_rate)
-            tone[i] = int((MaxValue / 10.0) * (np.sin(2 * np.pi * frequency_1 * t) + np.sin(2 * np.pi * frequency_2 * t)))
+            tone[i] = np.int16((MaxValue / 10.0) * (np.sin(2 * np.pi * frequency_1 * t) + np.sin(2 * np.pi * frequency_2 * t)))
             
         # Fading
         fade = 0.0
@@ -71,23 +71,20 @@ class DTMF(AbstractModulator):
                 break
             else:
                 fade = (np.power(float(i), 2.0) + i) / fade_limit
-            tone[i] = tone[i] * fade
-            tone[self.buffer_length - 1 - i] = tone[self.buffer_length - 1 - i] * fade
-            
+            tone[i] = np.int16(tone[i] * fade)
+            tone[self.buffer_length - 1 - i] = np.int16(tone[self.buffer_length - 1 - i] * fade)
+        
         return tone
     
     
-    def _write_to_file(self):
-        pass
-    
     # Public methods
     
-    def set_buffer_length(self, buffer_length: int):
+    def set_buffer_length(self, buffer_length: int) -> None:
         self.buffer_length = buffer_length
         self._init_matrix()
     
     
-    def get_tone(self, tone_symbol: str ) -> any:
+    def get_tone(self, tone_symbol: str ) -> list[int]:
         try:
             id = tone_symbol.lower()  
             return self.tone_matrix[self.tone_symbols[id]]
