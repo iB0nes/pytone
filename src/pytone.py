@@ -1,29 +1,26 @@
-"""
-Pytone
-
-Description:
-A Python software to play audio tones
-
-License:
-MIT License
-
-Author:
-Ivano Bonesana
-
-Date Created:
-20-apr-2024
-
-Requirements:
-- Python 3.10
-
-Usage:
-
-
-References:
-
-
-"""
-
+# PyTone
+# 
+# Description:
+# A Python software to play audio tones
+# 
+# License:
+# MIT License
+# 
+# Author:
+# Ivano Bonesana
+# 
+# Date Created:
+# 20-apr-2024
+# 
+# Requirements:
+# - Python 3.10
+# 
+# Usage:
+# 
+# 
+# References:
+# 
+# ------------------------------------------------------------------------------
 # MIT License
 # 
 # Copyright (c) 2024 I.Bonesana
@@ -45,45 +42,60 @@ References:
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# ------------------------------------------------------------------------------
 
+import argparse
 import time
 import struct
 
 from modulators.dtmf import DTMF
 from sound.sound_player import SoundPlayer
 
+# import sounddevice as sd
+
 if __name__ == "__main__":
 
     sampling_rate = 44100
-    tone_length = 1.0
-
+    tone_length = 100
+    
+    parser = argparse.ArgumentParser(
+        prog='PyTone', description='A Python software to play audio tones.', epilog=''
+    )
+    parser.add_argument("-m", "--message",      type=str, required=True, help="Message to transmit")
+    parser.add_argument("-e", "--encoding",     type=str, help="Transmission encoding mode. Default DTMF.", default="DTMF")
+    parser.add_argument("-t", "--tone-length",  type=int, help="DTMF tone length in ms. Default 100ms.",    default="100")
+    parser.add_argument("-v", '--version',      action='version', version='%(prog)s v1.0.0')
+    
+    args = parser.parse_args()
+    message = args.message
+    encoding = args.encoding
+    tone_length = args.tone_length/1000.0
+    
+    print(message)
+    print(encoding)
+    print(tone_length)
+        
     dtmf = DTMF(sampling_rate, tone_length)
     sp = SoundPlayer(sampling_rate)
     
-    sp.init_mixer()
+    # sp.init_mixer()
     
-    tone1 = dtmf.get_tone("1")
-    tb1 = struct.pack('<' + 'h' * len(tone1), *tone1) 
-    t1 = sp.get_sound_buffer(tb1)
+    # tone1 = dtmf.get_tone("1")
+    # tb1 = struct.pack('<' + 'h' * len(tone1), *tone1) 
+    # t1 = sp.get_sound_buffer(tb1)
     
-    tone2 = dtmf.get_tone("2")
-    tb2 = struct.pack('<' + 'h' * len(tone2), *tone2) 
-    t2 = sp.get_sound_buffer(tb2)
+    # tone2 = dtmf.get_tone("2")
+    # tb2 = struct.pack('<' + 'h' * len(tone2), *tone2) 
+    # t2 = sp.get_sound_buffer(tb2)
     
-    tone3 = dtmf.get_tone("3")
-    tb3 = struct.pack('<' + 'h' * len(tone3), *tone3) 
-    t3 = sp.get_sound_buffer(tb3)
+    # tone3 = dtmf.get_tone("3")
+    # tb3 = struct.pack('<' + 'h' * len(tone3), *tone3) 
+    # t3 = sp.get_sound_buffer(tb3)
 
+    # tone = tone1 + tone2 + tone3
+    # tb = struct.pack('<' + 'h' * len(tone), *tone)
+    # t = sp.get_sound_buffer(tb)
     
+    # sp.alternative_player([t, t, t, t, t2])
     
-    print("play 1")
-    sp.play_buffer(t1)
-    print("play 2")
-    while sp.queue_buffer(t2):
-        time.sleep(0.250)
-    print("play 3")
-    while sp.queue_last_buffer(t3):
-        time.sleep(0.250)
-    print("quit player")
-    sp.quit_player()
 

@@ -25,6 +25,8 @@
 #     time.sleep(1)
 # print(pygame.mixer.music.get_busy())
 
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
 import time
 import pygame
@@ -89,6 +91,8 @@ from enum import Enum
 # time.sleep(1)
 # pygame.quit()
 
+
+
 class SoundPlayerState(Enum):
     IDLE = 0
     INITIALIZED = 1
@@ -130,7 +134,7 @@ class SoundPlayer:
     def queue_last_buffer(self, buffer):
         if self.queue_buffer(buffer):
             while self.sound_playing.get_sound() is not None:
-                time.sleep(0.250)     
+                time.sleep(0.01)     
             self.quit_player()       
             return True
         return False
@@ -151,5 +155,15 @@ class SoundPlayer:
         self.sound_playing = None
         self.state = SoundPlayerState.IDLE
     
-          
     
+    def alternative_player(self, buffer_list):        
+        self.sound_playing = pygame.mixer.Sound.play(buffer_list[0])
+        for i in range(1, len(buffer_list)):
+            while self.sound_playing.get_queue() is not None:
+                time.sleep(0.01)
+            self.sound_playing.queue(buffer_list[i])
+        while self.sound_playing.get_sound() is not None:
+            time.sleep(0.001)
+        time.sleep(1)
+        pygame.quit()
+            
