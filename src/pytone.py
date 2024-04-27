@@ -48,6 +48,8 @@ import argparse
 import time
 import struct
 
+from str2bool import str2bool
+
 from modulators.dtmf import DTMF
 from sound.sound_player import SoundPlayer
 
@@ -64,38 +66,26 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--message",      type=str, required=True, help="Message to transmit")
     parser.add_argument("-e", "--encoding",     type=str, help="Transmission encoding mode. Default DTMF.", default="DTMF")
     parser.add_argument("-t", "--tone-length",  type=int, help="DTMF tone length in ms. Default 100ms.",    default="100")
+    parser.add_argument("-f", "--fading",       type=str, help="Enable or disable tone fading.",            default="true")
     parser.add_argument("-v", '--version',      action='version', version='%(prog)s v1.0.0')
     
     args = parser.parse_args()
     message = args.message
     encoding = args.encoding
     tone_length = args.tone_length/1000.0
+    fading = str2bool(args.fading)
     
-    print(message)
-    print(encoding)
-    print(tone_length)
+    print(f"message:   {message}")
+    print(f"encoding:  {encoding}")
+    print(f"tone len.: {tone_length}")
+    print(f"fading:    " + "yes" if fading else "no")
         
-    dtmf = DTMF(sampling_rate, tone_length)
+    dtmf = DTMF(sampling_rate, tone_length, fading=fading)
     sp = SoundPlayer(sampling_rate)
     
-    # sp.init_mixer()
+    encoded_msg = dtmf.encode_message_and_pack(message)
+    sp.init_mixer()
+    sp.tones_player(encoded_msg)
     
-    # tone1 = dtmf.get_tone("1")
-    # tb1 = struct.pack('<' + 'h' * len(tone1), *tone1) 
-    # t1 = sp.get_sound_buffer(tb1)
-    
-    # tone2 = dtmf.get_tone("2")
-    # tb2 = struct.pack('<' + 'h' * len(tone2), *tone2) 
-    # t2 = sp.get_sound_buffer(tb2)
-    
-    # tone3 = dtmf.get_tone("3")
-    # tb3 = struct.pack('<' + 'h' * len(tone3), *tone3) 
-    # t3 = sp.get_sound_buffer(tb3)
-
-    # tone = tone1 + tone2 + tone3
-    # tb = struct.pack('<' + 'h' * len(tone), *tone)
-    # t = sp.get_sound_buffer(tb)
-    
-    # sp.alternative_player([t, t, t, t, t2])
-    
+    print("complete")
 

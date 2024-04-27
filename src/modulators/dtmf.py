@@ -1,3 +1,4 @@
+import struct
 import numpy as np
 from modulators.abstract_modulator import AbstractModulator
 
@@ -25,13 +26,14 @@ class DTMF(AbstractModulator):
                     }
     
                         
-    def __init__(self, sampling_rate: int, tone_length: float) -> None:
+    def __init__(self, sampling_rate: int, tone_length: float, fading: bool = True) -> None:
         super().__init__()
         self.sampling_rate = sampling_rate
         self.tone_length = tone_length
         self.buffer_length = int(sampling_rate * tone_length)
         self.tone_matrix = {}
         self.null_matrix = []
+        self.fading = fading
         
         self._init_matrix()
         
@@ -61,23 +63,28 @@ class DTMF(AbstractModulator):
         for i in range(0, len(tone)):
             t = i / float(self.sampling_rate)
             tone[i] = np.int16((MaxValue / 10.0) * (np.sin(2 * np.pi * frequency_1 * t) + np.sin(2 * np.pi * frequency_2 * t)))
-            
-        # Fading
-        fade = 0.0
-        fade_limit = np.power(self.buffer_length // 6, 2.0) + (self.buffer_length // 6)
-        for i in range(0, self.buffer_length // 5):
-            if fade >= 1.0:
-                fade = 1.0
-                break
-            else:
-                fade = (np.power(float(i), 2.0) + i) / fade_limit
-            tone[i] = np.int16(tone[i] * fade)
-            tone[self.buffer_length - 1 - i] = np.int16(tone[self.buffer_length - 1 - i] * fade)
+        
+        if self.fading:
+            # Fading
+            fade = 0.0
+            fade_limit = np.power(self.buffer_length // 6, 2.0) + (self.buffer_length // 6)
+            for i in range(0, self.buffer_length // 5):
+                if fade >= 1.0:
+                    fade = 1.0
+                    break
+                else:
+                    fade = (np.power(float(i), 2.0) + i) / fade_limit
+                tone[i] = np.int16(tone[i] * fade)
+                tone[self.buffer_length - 1 - i] = np.int16(tone[self.buffer_length - 1 - i] * fade)
         
         return tone
     
     
     # Public methods
+    
+    def get_all_symbols(self) -> list[str]:
+        return list(self.tone_symbols.keys())
+    
     
     def set_buffer_length(self, buffer_length: int) -> None:
         self.buffer_length = buffer_length
@@ -90,4 +97,19 @@ class DTMF(AbstractModulator):
             return self.tone_matrix[self.tone_symbols[id]]
         except KeyError:
             return self.null_matrix
-
+        
+        
+    def encode_message(self, message: str) -> list[list[int]]:
+        tones = []
+        for symbol in message:
+            tones.append(self.get_tone(symbol))
+        return tones
+    
+    
+    def encode_message_and_pack(self, message: str) -> list[(str, list[int])]:
+        tones = []
+        for symbol in message:
+            tone = self.get_tone(symbol)
+            tone_bin = struct.pack('<' + 'h' * len(tone), *tone)
+            tones.append((symbol, tone_bin))
+        return tones

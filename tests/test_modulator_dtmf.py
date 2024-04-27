@@ -1,4 +1,5 @@
 
+import random
 import sys
 sys.path.append('src')
 
@@ -17,6 +18,10 @@ def sampling_rate():
 @pytest.fixture
 def default_tone_length():
     return 1.0 # s
+
+@pytest.fixture
+def short_tone_length():
+    return 0.1 #s
 
 
 class TestDtmf:
@@ -42,9 +47,9 @@ class TestDtmf:
         return peaks
         
     # Tests
-    def test_dtmf_creation(self, sampling_rate):
+    def test_dtmf_creation(self, sampling_rate, short_tone_length):
         try:
-            dtmf = DTMF(sampling_rate, 0.1)
+            dtmf = DTMF(sampling_rate, short_tone_length)
             assert True
         except:
             assert False
@@ -91,3 +96,19 @@ class TestDtmf:
         except:
             assert False
 
+
+    def test_dtmf_encode(self, sampling_rate, short_tone_length):
+        dtmf = DTMF(sampling_rate, short_tone_length)     
+        symbols = dtmf.get_all_symbols()
+        
+        random.seed()
+        for k in range(1,11):
+            msg = "".join(random.choices(symbols, k=k))
+            encoded = dtmf.encode_message(msg)
+            assert len(encoded) == len(msg)
+            for i in range(len(msg)):
+                tone = dtmf.get_tone(msg[i])
+                for j in range(len(tone)):
+                    assert tone[j] == encoded[i][j]
+
+     
