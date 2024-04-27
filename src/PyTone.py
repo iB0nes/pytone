@@ -16,7 +16,7 @@
 # - Python 3.10
 # 
 # Usage:
-# 
+# PyTone [-h] -m MESSAGE [-e ENCODING] [-t TONE_LENGTH] [-f FADING] [-v]
 # 
 # References:
 # 
