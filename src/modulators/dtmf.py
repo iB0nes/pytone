@@ -75,7 +75,7 @@ class DTMF(AbstractModulator):
                 else:
                     fade = (np.power(float(i), 2.0) + i) / fade_limit
                 tone[i] = np.int16(tone[i] * fade)
-                tone[self.buffer_length - 1 - i] = np.int16(tone[self.buffer_length - 1 - i] * fade)
+                tone[self.buffer_length - 1 - i] = np.int16(tone[self.buffer_length - 1 - i] * fade)                  
         
         return tone
     

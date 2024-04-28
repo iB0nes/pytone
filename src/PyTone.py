@@ -66,6 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--message",      type=str, required=True, help="Message to transmit")
     parser.add_argument("-e", "--encoding",     type=str, help="Transmission encoding mode. Default DTMF.", default="DTMF")
     parser.add_argument("-t", "--tone-length",  type=int, help="DTMF tone length in ms. Default 100ms.",    default="100")
+    #parser.add_argument("-p", "--pause-length", type=int, help="Slicence (pause) between two tones in ms. Default 0ms, if fading is enabled, tones are separated by 20ms by default.", default="0")
     parser.add_argument("-f", "--fading",       type=str, help="Enable or disable tone fading.",            default="true")
     parser.add_argument("-v", '--version',      action='version', version='%(prog)s v1.0.0')
     
@@ -73,12 +74,13 @@ if __name__ == "__main__":
     message = args.message
     encoding = args.encoding
     tone_length = args.tone_length/1000.0
+    #pause_length = args.pause_length/1000.0
     fading = str2bool(args.fading)
     
     print(f"message:   {message}")
     print(f"encoding:  {encoding}")
     print(f"tone len.: {tone_length}")
-    print(f"fading:    " + "yes" if fading else "no")
+    print(f"fading:    " + ("yes" if fading else "no"))
         
     dtmf = DTMF(sampling_rate, tone_length, fading=fading)
     sp = SoundPlayer(sampling_rate)
